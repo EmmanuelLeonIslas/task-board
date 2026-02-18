@@ -130,5 +130,5 @@ if (app) {
         }
     }
 
-    showTasks() // Render tasks on page load.
+    showTasks() //Render tasks on page load
 }

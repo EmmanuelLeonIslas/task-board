@@ -1,4 +1,5 @@
 import type { CreateTaskDTO, DeleteTaskDTO, Task, UpdateTaskDTO } from "../types/tasks";
+import { CreateTaskDTOSchema, UpdateTaskDTOSchema, DeleteTaskDTOSchema } from "../schemas/taskSchemas";
 
 let tasks: Task[] = loadTasksFromStorage()
 
@@ -7,7 +8,6 @@ function loadTasksFromStorage(): Task[] {
 
     if (saved) {
         const parsed = JSON.parse(saved)
-        console.log("entra")
 
         return parsed.map((task: Task) => ({
             ...task,
@@ -23,9 +23,11 @@ function saveTasksToStorage(): void {
 }
 
 export function createTask(data: CreateTaskDTO): Task {
+    const validatedData = CreateTaskDTOSchema.parse(data)
+
     const newTask: Task = {
         id: crypto.randomUUID(), //A browser function that returns a unique set of characters.
-        title: data.title,
+        title: validatedData.title,
         status: "pending",
         createdAt: new Date()
     }
@@ -40,7 +42,9 @@ export function getTasks(): Task[] {
 }
 
 export function updateTask(data: UpdateTaskDTO): void {
-    const task = tasks.find(task => task.id === data.id)
+    const validatedData = UpdateTaskDTOSchema.parse(data)
+
+    const task = tasks.find(task => task.id === validatedData.id)
 
     if (task) {
         if (data.title !== undefined)
@@ -54,7 +58,9 @@ export function updateTask(data: UpdateTaskDTO): void {
 }
 
 export function deleteTask(data: DeleteTaskDTO): void {
-    const index = tasks.findIndex(task => task.id === data.id)
+    const validatedData = DeleteTaskDTOSchema.parse(data)
+
+    const index = tasks.findIndex(task => task.id === validatedData.id)
 
     if (index !== -1) {
         tasks.splice(index, 1)
