@@ -68,16 +68,19 @@ if (app) {
             taskDiv.style.marginBottom = '10px'
 
             taskDiv.innerHTML = `
-                <p><strong>${task.title}</strong></p>
+                <p><strong id="title-${task.id}">${task.title}</strong></p>
                 <p style="font-size: 12px;">Created: ${task.createdAt.toLocaleString()}</p>
+
+                <button data-id="${task.id}" data-action="edit">Edit</button>
+
                 ${
                     task.status !== 'in_progress' ?
-                    `<button data-id="${task.id}" data-action="in_progress">Mark In Progress</button>`
+                    `<button data-id="${task.id}" data-action="in_progress">→ In Progress</button>`
                     : ''
                 }
                 ${
                     task.status !== 'completed' ?
-                    `<button data-id="${task.id}" data-action="completed">Mark Completed</button>`
+                    `<button data-id="${task.id}" data-action="completed">✓ Completed</button>`
                     : ''
                 }
 
@@ -92,6 +95,8 @@ if (app) {
 
                     if (action === 'delete') {
                         deleteTask({ id: taskId })
+                    } else if (action === 'edit') {
+                        handleEdit(taskId)
                     } else {
                         updateTask({ id: taskId, status: action as TaskStatus })
                     }
@@ -108,6 +113,21 @@ if (app) {
                 completedContainer.appendChild(taskDiv)
             }
         })
+    }
+
+    function handleEdit(taskId: string) {
+        const titleElement = document.querySelector<HTMLElement>(`#title-${taskId}`)
+
+        if (!titleElement)
+            return
+
+        const currentTitle = titleElement.textContent || ''
+        const newTitle = prompt('Edit task title:', currentTitle)
+
+        if (newTitle && newTitle.trim() !== '') {
+            updateTask({ id: taskId, title: newTitle.trim() })
+            showTasks()
+        }
     }
 
     showTasks() // Render tasks on page load.
