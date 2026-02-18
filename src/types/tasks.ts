@@ -8,3 +8,5 @@ export interface Task {
 }
 
 export type CreateTaskDTO = Pick<Task, "title">
+export type UpdateTaskDTO = Partial<Omit<Task, "createdAt">> & Pick<Task, "id">
+export type DeleteTaskDTO = Pick<Task, "id">
