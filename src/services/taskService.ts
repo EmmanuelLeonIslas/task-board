@@ -1,5 +1,5 @@
-import type { CreateTaskDTO, DeleteTaskDTO, Task, UpdateTaskDTO } from "../types/tasks";
-import { CreateTaskDTOSchema, UpdateTaskDTOSchema, DeleteTaskDTOSchema } from "../schemas/taskSchemas";
+import type { CreateTaskDTO, DeleteTaskDTO, Task, UpdateTaskDTO } from "../types/tasks"
+import { CreateTaskDTOSchema, UpdateTaskDTOSchema, DeleteTaskDTOSchema } from "../schemas/taskSchemas"
 
 let tasks: Task[] = loadTasksFromStorage()
 
@@ -47,11 +47,11 @@ export function updateTask(data: UpdateTaskDTO): void {
     const task = tasks.find(task => task.id === validatedData.id)
 
     if (task) {
-        if (data.title !== undefined)
-            task.title = data.title
+        if (validatedData.title !== undefined)
+            task.title = validatedData.title
 
-        if (data.status !== undefined)
-            task.status = data.status
+        if (validatedData.status !== undefined)
+            task.status = validatedData.status
     }
 
     saveTasksToStorage()

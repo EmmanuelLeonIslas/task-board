@@ -1,8 +1,9 @@
 import './style.css'
-import { createTask, deleteTask, getTasks, updateTask } from './services/taskService';
-import type { TaskStatus } from './types/tasks';
+import { z } from 'zod'
+import { createTask, deleteTask, getTasks, updateTask } from './services/taskService'
+import type { TaskStatus } from './types/tasks'
 
-const app = document.querySelector<HTMLDivElement>('#app');
+const app = document.querySelector<HTMLDivElement>('#app')
 
 if (app) {
     app.innerHTML = `
@@ -39,14 +40,16 @@ if (app) {
     const button = document.querySelector<HTMLButtonElement>('#addBtn')
 
     button?.addEventListener('click', () => {
-        const taskText = input?.value || ''
+        const title = input?.value || ''
 
-        if (taskText.trim() !== '') {
-            createTask({ title: taskText })
+        try {
+            createTask({ title })
 
             if (input) input.value = ''
-
-            showTasks();
+            showTasks()
+        } catch (error) {
+            if (error instanceof z.ZodError)
+                alert(`Error: ${error.issues[0].message}`)
         }
     })
 
@@ -124,9 +127,15 @@ if (app) {
         const currentTitle = titleElement.textContent || ''
         const newTitle = prompt('Edit task title:', currentTitle)
 
-        if (newTitle && newTitle.trim() !== '') {
-            updateTask({ id: taskId, title: newTitle.trim() })
-            showTasks()
+        if (newTitle !== null){
+            try {
+                updateTask({ id: taskId, title: newTitle.trim() })
+                showTasks()
+            } catch (error) {
+                if (error instanceof z.ZodError) {
+                    alert(`Error: ${error.issues[0].message}`)
+                }
+            }
         }
     }
 
