@@ -1,69 +1,76 @@
-import type { CreateTaskDTO, DeleteTaskDTO, Task, UpdateTaskDTO } from "../types/tasks"
-import { CreateTaskDTOSchema, UpdateTaskDTOSchema, DeleteTaskDTOSchema } from "../schemas/taskSchemas"
+import type {
+  CreateTaskDTO,
+  DeleteTaskDTO,
+  Task,
+  UpdateTaskDTO,
+} from "../types/tasks";
+import {
+  CreateTaskDTOSchema,
+  UpdateTaskDTOSchema,
+  DeleteTaskDTOSchema,
+} from "../schemas/taskSchemas";
 
-let tasks: Task[] = loadTasksFromStorage()
+let tasks: Task[] = loadTasksFromStorage();
 
 function loadTasksFromStorage(): Task[] {
-    const saved = localStorage.getItem('tasks')
+  const saved = localStorage.getItem("tasks");
 
-    if (saved) {
-        const parsed = JSON.parse(saved)
+  if (saved) {
+    const parsed = JSON.parse(saved);
 
-        return parsed.map((task: Task) => ({
-            ...task,
-            createdAt: new Date(task.createdAt)
-        }))
-    }
+    return parsed.map((task: Task) => ({
+      ...task,
+      createdAt: new Date(task.createdAt),
+    }));
+  }
 
-    return []
+  return [];
 }
 
 function saveTasksToStorage(): void {
-    localStorage.setItem('tasks', JSON.stringify(tasks))
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
 export function createTask(data: CreateTaskDTO): Task {
-    const validatedData = CreateTaskDTOSchema.parse(data)
+  const validatedData = CreateTaskDTOSchema.parse(data);
 
-    const newTask: Task = {
-        id: crypto.randomUUID(), //A browser function that returns a unique set of characters.
-        title: validatedData.title,
-        status: "pending",
-        createdAt: new Date()
-    }
+  const newTask: Task = {
+    id: crypto.randomUUID(), //A browser function that returns a unique set of characters.
+    title: validatedData.title,
+    status: "pending",
+    createdAt: new Date(),
+  };
 
-    tasks.push(newTask)
-    saveTasksToStorage()
-    return newTask
+  tasks.push(newTask);
+  saveTasksToStorage();
+  return newTask;
 }
 
 export function getTasks(): Task[] {
-    return tasks
+  return tasks;
 }
 
 export function updateTask(data: UpdateTaskDTO): void {
-    const validatedData = UpdateTaskDTOSchema.parse(data)
+  const validatedData = UpdateTaskDTOSchema.parse(data);
 
-    const task = tasks.find(task => task.id === validatedData.id)
+  const task = tasks.find((task) => task.id === validatedData.id);
 
-    if (task) {
-        if (validatedData.title !== undefined)
-            task.title = validatedData.title
+  if (task) {
+    if (validatedData.title !== undefined) task.title = validatedData.title;
 
-        if (validatedData.status !== undefined)
-            task.status = validatedData.status
-    }
+    if (validatedData.status !== undefined) task.status = validatedData.status;
+  }
 
-    saveTasksToStorage()
+  saveTasksToStorage();
 }
 
 export function deleteTask(data: DeleteTaskDTO): void {
-    const validatedData = DeleteTaskDTOSchema.parse(data)
+  const validatedData = DeleteTaskDTOSchema.parse(data);
 
-    const index = tasks.findIndex(task => task.id === validatedData.id)
+  const index = tasks.findIndex((task) => task.id === validatedData.id);
 
-    if (index !== -1) {
-        tasks.splice(index, 1)
-        saveTasksToStorage()
-    }
+  if (index !== -1) {
+    tasks.splice(index, 1);
+    saveTasksToStorage();
+  }
 }
