@@ -9,68 +9,66 @@ import {
   UpdateTaskDTOSchema,
   DeleteTaskDTOSchema,
 } from "../schemas/taskSchemas";
+import { API_URL } from "../config/api";
 
-let tasks: Task[] = loadTasksFromStorage();
-
-function loadTasksFromStorage(): Task[] {
-  const saved = localStorage.getItem("tasks");
-
-  if (saved) {
-    const parsed = JSON.parse(saved);
-
-    return parsed.map((task: Task) => ({
-      ...task,
-      createdAt: new Date(task.createdAt),
-    }));
-  }
-
-  return [];
-}
-
-function saveTasksToStorage(): void {
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-export function createTask(data: CreateTaskDTO): Task {
+export async function createTask(data: CreateTaskDTO): Promise<Task> {
   const validatedData = CreateTaskDTOSchema.parse(data);
 
-  const newTask: Task = {
-    id: crypto.randomUUID(), //A browser function that returns a unique set of characters.
-    title: validatedData.title,
-    status: "pending",
-    createdAt: new Date(),
-  };
+  const response = await fetch(`${API_URL}/tasks`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(validatedData),
+  });
 
-  tasks.push(newTask);
-  saveTasksToStorage();
-  return newTask;
+  if (!response.ok) {
+    throw new Error("Failed to create task");
+  }
+
+  return response.json();
 }
 
-export function getTasks(): Task[] {
-  return tasks;
+export async function getTasks(): Promise<Task[]> {
+  const response = await fetch(`${API_URL}/tasks`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch tasks");
+  }
+
+  return response.json();
 }
 
-export function updateTask(data: UpdateTaskDTO): void {
+export async function updateTask(data: UpdateTaskDTO): Promise<Task> {
   const validatedData = UpdateTaskDTOSchema.parse(data);
 
-  const task = tasks.find((task) => task.id === validatedData.id);
+  const { _id, ...updateData } = validatedData;
 
-  if (task) {
-    if (validatedData.title !== undefined) task.title = validatedData.title;
+  const response = await fetch(`${API_URL}/tasks/${_id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updateData),
+  });
 
-    if (validatedData.status !== undefined) task.status = validatedData.status;
+  if (!response.ok) {
+    throw new Error("Failed to update task");
   }
 
-  saveTasksToStorage();
+  return response.json();
 }
 
-export function deleteTask(data: DeleteTaskDTO): void {
+export async function deleteTask(data: DeleteTaskDTO): Promise<Task> {
   const validatedData = DeleteTaskDTOSchema.parse(data);
 
-  const index = tasks.findIndex((task) => task.id === validatedData.id);
+  const response = await fetch(`${API_URL}/tasks/${validatedData._id}`, {
+    method: "DELETE",
+  });
 
-  if (index !== -1) {
-    tasks.splice(index, 1);
-    saveTasksToStorage();
+  if (!response.ok) {
+    throw new Error("Failed to update task");
   }
+
+  return response.json();
 }

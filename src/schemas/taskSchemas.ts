@@ -3,13 +3,14 @@ import { z } from "zod";
 export const TaskStatusSchema = z.enum(["pending", "in_progress", "completed"]);
 
 export const TaskSchema = z.object({
-  id: z.uuid(),
+  _id: z.string(),
   title: z
     .string()
     .min(1, "Title cannot be empty")
     .max(100, "Title is too long"),
   status: TaskStatusSchema,
-  createdAt: z.date(),
+  createdAt: z.union([z.date(), z.string()]),
+  updatedAt: z.union([z.date(), z.string()]).optional(),
 });
 
 export const CreateTaskDTOSchema = z.object({
@@ -20,7 +21,7 @@ export const CreateTaskDTOSchema = z.object({
 });
 
 export const UpdateTaskDTOSchema = z.object({
-  id: z.uuid(),
+  _id: z.string(),
   title: z
     .string()
     .min(1, "Title cannot be empty")
@@ -30,5 +31,5 @@ export const UpdateTaskDTOSchema = z.object({
 });
 
 export const DeleteTaskDTOSchema = z.object({
-  id: z.uuid(),
+  _id: z.string(),
 });

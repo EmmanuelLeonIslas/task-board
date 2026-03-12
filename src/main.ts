@@ -6,19 +6,18 @@ import {
   getTasks,
   updateTask,
 } from "./services/taskService";
-import type { TaskStatus } from "./types/tasks";
+import type { Task, TaskStatus } from "./types/tasks";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 
 if (app) {
   const savedTheme = localStorage.getItem("theme");
 
-// Si no hay tema guardado, usar light por defecto
-if (savedTheme === "dark") {
-  document.documentElement.classList.add("dark");
-} else {
-  document.documentElement.classList.remove("dark");
-}
+  if (savedTheme === "dark") {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
 
   app.innerHTML = `
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900 p-8 transition-colors duration-300">
@@ -84,119 +83,137 @@ if (savedTheme === "dark") {
     themeToggle.textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
   }
 
-  button?.addEventListener("click", () => {
+  button?.addEventListener("click", async () => {
     const title = input?.value || "";
 
     try {
-      createTask({ title });
+      await createTask({ title });
 
       if (input) input.value = "";
-      showTasks();
+      await showTasks();
     } catch (error) {
       if (error instanceof z.ZodError)
         alert(`Error: ${error.issues[0].message}`);
+      else if (error instanceof Error) alert(`Error: ${error.message}`);
     }
   });
 
-  function showTasks() {
-    const allTasks = getTasks();
+  async function showTasks() {
+    try {
+      const allTasks = await getTasks();
 
-    const pendingContainer =
-      document.querySelector<HTMLDivElement>("#pendingTasks");
-    const inProgressContainer =
-      document.querySelector<HTMLDivElement>("#inProgressTasks");
-    const completedContainer =
-      document.querySelector<HTMLDivElement>("#completedTasks");
+      const pendingContainer =
+        document.querySelector<HTMLDivElement>("#pendingTasks");
+      const inProgressContainer =
+        document.querySelector<HTMLDivElement>("#inProgressTasks");
+      const completedContainer =
+        document.querySelector<HTMLDivElement>("#completedTasks");
 
-    if (pendingContainer) pendingContainer.innerHTML = "";
-    if (inProgressContainer) inProgressContainer.innerHTML = "";
-    if (completedContainer) completedContainer.innerHTML = "";
+      if (pendingContainer) pendingContainer.innerHTML = "";
+      if (inProgressContainer) inProgressContainer.innerHTML = "";
+      if (completedContainer) completedContainer.innerHTML = "";
 
-    allTasks.forEach((task) => {
-      const taskDiv = document.createElement("div");
-      taskDiv.className =
-        "bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 mb-3 hover:shadow-lg hover:scale-101 transition-all duration-300 ease-out opacity-0";
+      allTasks.forEach((task: Task) => {
+        const taskDiv = document.createElement("div");
+        taskDiv.className =
+          "bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 mb-3 hover:shadow-lg hover:scale-101 transition-all duration-300 ease-out opacity-0";
 
-      taskDiv.innerHTML = `
-                <p class="font-semibold text-gray-800 dark:text-white mb-1" id="title-${task.id}">${task.title}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Created: ${task.createdAt.toLocaleString()}</p>
+        const createdAt =
+          typeof task.createdAt === "string"
+            ? new Date(task.createdAt).toLocaleString()
+            : task.createdAt.toLocaleString();
 
-                <div class="flex flex-wrap gap-1">
-                    <button
-                        data-id="${task.id}"
-                        data-action="edit"
-                        class="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white rounded transition cursor-pointer select-none"
-                    >
-                        Edit
-                    </button>
+        taskDiv.innerHTML = `
+                  <p class="font-semibold text-gray-800 dark:text-white mb-1" id="title-${task._id}">${task.title}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Created: ${createdAt}</p>
 
-                    ${
-                      task.status !== "in_progress"
-                        ? `<button
-                                data-id="${task.id}"
-                                data-action="in_progress"
-                                class="px-2 py-1 text-xs bg-yellow-500 hover:bg-yellow-600 text-white rounded transition cursor-pointer select-none"
-                            >
-                                → In Progress
-                            </button>`
-                        : ""
-                    }
-                    ${
-                      task.status !== "completed"
-                        ? `<button
-                                data-id="${task.id}"
-                                data-action="completed"
-                                class="px-2 py-1 text-xs bg-green-500 hover:bg-green-600 text-white rounded transition cursor-pointer select-none"
-                            >
-                                ✓ Completed
-                            </button>`
-                        : ""
-                    }
+                  <div class="flex flex-wrap gap-1">
+                      <button
+                          data-id="${task._id}"
+                          data-action="edit"
+                          class="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white rounded transition cursor-pointer select-none"
+                      >
+                          Edit
+                      </button>
 
-                    <button
-                        data-id="${task.id}"
-                        data-action="delete"
-                        class="px-2 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition cursor-pointer select-none"
-                        >
-                            Delete
-                        </button>
-                </div>
-            `;
+                      ${
+                        task.status !== "in_progress"
+                          ? `<button
+                                  data-id="${task._id}"
+                                  data-action="in_progress"
+                                  class="px-2 py-1 text-xs bg-yellow-500 hover:bg-yellow-600 text-white rounded transition cursor-pointer select-none"
+                              >
+                                  → In Progress
+                              </button>`
+                          : ""
+                      }
+                      ${
+                        task.status !== "completed"
+                          ? `<button
+                                  data-id="${task._id}"
+                                  data-action="completed"
+                                  class="px-2 py-1 text-xs bg-green-500 hover:bg-green-600 text-white rounded transition cursor-pointer select-none"
+                              >
+                                  ✓ Completed
+                              </button>`
+                          : ""
+                      }
 
-      setTimeout(() => {
-        taskDiv.classList.remove("opacity-0");
-        taskDiv.classList.add("opacity-100");
-      }, 100);
+                      <button
+                          data-id="${task._id}"
+                          data-action="delete"
+                          class="px-2 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition cursor-pointer select-none"
+                          >
+                              Delete
+                          </button>
+                  </div>
+              `;
 
-      const buttons = taskDiv.querySelectorAll("button");
-      buttons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const taskId = button.dataset.id!; //The exclamation mark is known as non-null assertion
-          const action = button.dataset.action;
+        setTimeout(() => {
+          taskDiv.classList.remove("opacity-0");
+          taskDiv.classList.add("opacity-100");
+        }, 100);
 
-          if (action === "delete") {
-            deleteTask({ id: taskId });
-          } else if (action === "edit") {
-            handleEdit(taskId);
-          } else {
-            updateTask({ id: taskId, status: action as TaskStatus });
-          }
+        const buttons = taskDiv.querySelectorAll("button");
+        buttons.forEach((button) => {
+          button.addEventListener("click", async () => {
+            const taskId = button.dataset.id!; //The exclamation mark is known as non-null assertion
+            const action = button.dataset.action;
 
-          showTasks();
+            try {
+              if (action === "delete") {
+                await deleteTask({ _id: taskId });
+              } else if (action === "edit") {
+                await handleEdit(taskId);
+              } else {
+                await updateTask({ _id: taskId, status: action as TaskStatus });
+              }
+
+              await showTasks();
+            } catch (error) {
+              if (error instanceof Error) {
+                alert(`Error: ${error.message}`);
+              }
+            }
+          });
         });
-      });
 
-      if (task.status === "pending" && pendingContainer) {
-        pendingContainer.appendChild(taskDiv);
-      } else if (task.status === "in_progress" && inProgressContainer) {
-        inProgressContainer.appendChild(taskDiv);
-      } else if (task.status === "completed" && completedContainer) {
-        completedContainer.appendChild(taskDiv);
+        if (task.status === "pending" && pendingContainer) {
+          pendingContainer.appendChild(taskDiv);
+        } else if (task.status === "in_progress" && inProgressContainer) {
+          inProgressContainer.appendChild(taskDiv);
+        } else if (task.status === "completed" && completedContainer) {
+          completedContainer.appendChild(taskDiv);
+        }
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(`Error loading tasks: ${error.message}`);
       }
-    });
+    }
   }
 
-  function handleEdit(taskId: string) {
+  async function handleEdit(taskId: string) {
     const titleElement = document.querySelector<HTMLElement>(
       `#title-${taskId}`,
     );
@@ -208,12 +225,12 @@ if (savedTheme === "dark") {
 
     if (newTitle !== null) {
       try {
-        updateTask({ id: taskId, title: newTitle.trim() });
-        showTasks();
+        await updateTask({ _id: taskId, title: newTitle.trim() });
+        await showTasks();
       } catch (error) {
-        if (error instanceof z.ZodError) {
+        if (error instanceof z.ZodError)
           alert(`Error: ${error.issues[0].message}`);
-        }
+        else if (error instanceof Error) alert(`Error: ${error.message}`);
       }
     }
   }
