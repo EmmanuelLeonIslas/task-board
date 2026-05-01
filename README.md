@@ -31,7 +31,7 @@ A modern, responsive task management application built with TypeScript, Vite, an
 
 ## Related Projects
 
-- [Task Board Backend](https://github.com/YOUR-USERNAME/task-board-backend) - NestJS API
+- [Task Board Backend](https://github.com/EmmanuelLeonIslas/task-board-backend) - NestJS API
 
 ## Contributing
 
@@ -43,5 +43,5 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## Author
 
-Your Name
+Emmanuel León Islas
 - GitHub: [@Emmanuel León Islas](https://github.com/EmmanuelLeonIslas)
